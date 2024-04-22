@@ -2,7 +2,7 @@
 
 使用 AppImage 运行 Linux 原生微信
 
-- 无需安装，直接删除即可卸载。
+- 无需安装，下载即可运行，删除即可卸载。
 - 无需更改系统的 `lsb-release` 等 `/etc` 内的文件
 - 无需 sudo
 - 限制读写目录，以防在操作系统里到处乱放文件
@@ -13,7 +13,11 @@
 - 需要有 XDG 用户目录（常见发行版都有）
   - 查看 `~/.config/user-dirs.dirs`（必须有这个文件）
   - 里面要有 `XDG_DESKTOP_DIR`、`XDG_DOWNLOAD_DIR` 和 `XDG_DOCUMENTS_DIR`
-  - 运行时，在用户目录下，微信只能读写这三个目录、微信数据库文件（放在 `${XDG_DOCUMENTS_DIR}/xwechat_files` 下，原生微信是 `~/xwechat_files`）、微信配置文件（`~/.xwechat`）和字体配置文件。
+  - 运行时，在用户目录下，微信只能读写：
+    - 这三个目录，也就是桌面、下载、文档（应该够用了，不够用的自己改源码）
+    - 微信数据库文件（放在 `${XDG_DOCUMENTS_DIR}/xwechat_files` 下，原生微信是 `~/xwechat_files`）
+    - 微信配置文件（`~/.xwechat`）
+    - 字体配置文件。
 
 ## 获取 AppImage 文件
 
@@ -49,7 +53,7 @@ appimagetool ./wechat-appimage
 
 ## 运行方法
 
-已经测试在 Debian 和 kali 运行过。
+已经测试在 Debian 和 kali 运行过，理论上来讲各种发行版都行。
 
 注：实际测试中有极少时候第一次扫码之后没反应，此时可以关闭重新启动扫码。
 
@@ -65,6 +69,17 @@ sudo wechat --install # 安装图标
 ```
 
 然后你可以在桌面添加类似的启动器图标。
+
+安装图标只涉及两个文件：
+
+```text
+/usr/share/icons/hicolor/256x256/apps/wechat.png
+/usr/share/applications/wechat.desktop
+```
+
+如果想要在桌面上加上图标，只需要把第二个文件复制到桌面。
+
+如果想要卸载，请手动删除这两个文件，并删除 `/usr/bin/wechat`（我没写卸载逻辑，因为太简单了）
 
 ### 更多功能
 
