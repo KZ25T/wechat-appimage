@@ -9,7 +9,8 @@ if [ $# -eq 1 ]; then
 		echo "Options:"
 		echo "    --debug                   return a shell but not wechat"
 		echo "    --kill                    to kill wechat process"
-		echo "    --install(root required)  to install desktop file to /usr/share/applications"
+		echo "    --install (root required) to install desktop file"
+		echo "    --remove  (root required) to remove installation above"
 		exit $?
 	fi
 	if [ "$1" = "--debug" ]; then
@@ -22,6 +23,12 @@ if [ $# -eq 1 ]; then
 	if [ "$1" = "--install" ]; then
 		cp $APPDIR/usr/share/applications/wechat.desktop /usr/share/applications
 		cp $APPDIR/usr/share/icons/hicolor/256x256/apps/wechat.png /usr/share/icons/hicolor/256x256/apps
+		exit $?
+	fi
+	if [ "$1" = "--remove" ]; then
+		rm /usr/share/applications
+		rm /usr/share/icons/hicolor/256x256/apps
+		rm $APPIMAGE
 		exit $?
 	fi
 fi

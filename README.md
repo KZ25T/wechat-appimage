@@ -29,7 +29,7 @@
 
 以下构建方式仅测试过 238 的 x86_64 版。
 
-下载本仓库，同时下载一个微信 Linux 版本的 deb 包。
+下载本仓库，同时下载一个微信 Linux 版本的 deb 包，还需要下载“优麒麟微信”deb 包（自己上网搜），在后者里提取 libactivation.so 备用。
 
 解包 deb，移植文件：
 
@@ -37,7 +37,7 @@
 # pwd 为仓库根目录
 dpkg -X your_wechat.deb /tmp/out
 cp -r /tmp/out/opt src         # 大部分文件
-cp -r /tmp/out/usr/lib src/usr # 应该只有 libactivation.so
+mkdir -p src/usr/lib           # 把 libactivation.so 挪进来
 ```
 
 安装 appimagetool（自己上网搜）
@@ -45,8 +45,8 @@ cp -r /tmp/out/usr/lib src/usr # 应该只有 libactivation.so
 打包 appimage：
 
 ```bash
-# pwd 为仓库根目录上一级
-appimagetool ./wechat-appimage
+# pwd 为仓库根目录
+appimagetool ./src
 ```
 
 可以取得 `wechat-x86_64.AppImage`
@@ -65,7 +65,9 @@ appimagetool ./wechat-appimage
 
 ```bash
 sudo mv wechat-x86_64.AppImage /usr/bin/wechat
-sudo wechat --install # 安装图标
+sudo wechat --install # 安装图标、桌面文件
+# 卸载前两项
+sudo wechat --remove
 ```
 
 然后你可以在桌面添加类似的启动器图标。
@@ -79,8 +81,6 @@ sudo wechat --install # 安装图标
 
 如果想要在桌面上加上图标，只需要把第二个文件复制到桌面。
 
-如果想要卸载，请手动删除这两个文件，并删除 `/usr/bin/wechat`（我没写卸载逻辑，因为太简单了）
-
 ### 更多功能
 
 ```bash
@@ -88,10 +88,12 @@ sudo wechat --install # 安装图标
 wechat-x86_64.AppImage --help
 # 进入 bwrap 的 shell(bash)
 wechat-x86_64.AppImage --debug
-# 关闭微信进程（早期版本无法退出，现在应该没了）
+# 关闭微信进程（早期版本无法退出，现在应该不需要这个功能了）
 wechat-x86_64.AppImage --kill
-# 安装图标
+# 安装图标、桌面文件
 sudo wechat-x86_64.AppImage --install
+# 卸载图标、桌面文件、应用
+sudo wechat-x86_64.AppImage --remove
 ```
 
 ## 声明
