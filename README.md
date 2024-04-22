@@ -82,4 +82,10 @@ sudo wechat-x86_64.AppImage --install
 
 ## 声明
 
-未经过严格测试，使用本仓库造成的一切后果由使用者负责。
+本仓库仅供学习交流使用，且未经过严格测试，使用本仓库造成的一切后果由使用者负责。
+
+## 参考
+
+参考：[依云's Blog - 使用 bwrap 沙盒](https://blog.lilydjwg.me/2021/8/12/using-bwrap.215869.html)
+
+参考：[wechat-beta-bwrap](https://github.com/lfift/wechat-beta-bwrap)
