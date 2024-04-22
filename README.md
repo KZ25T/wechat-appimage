@@ -64,13 +64,14 @@ appimagetool ./src
 ### 安装运行
 
 ```bash
+# 安装
 sudo mv wechat-x86_64.AppImage /usr/bin/wechat
 sudo wechat --install # 安装图标、桌面文件
-# 卸载前两项
+# 卸载
 sudo wechat --remove
 ```
 
-然后你可以在桌面添加类似的启动器图标。
+安装后你可以在桌面添加类似的启动器图标。
 
 安装图标只涉及两个文件：
 
