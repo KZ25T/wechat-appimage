@@ -1,0 +1,6 @@
+NAME="Kylin Linux Advanced Server"
+VERSION="V10 (Tercel)"
+ID="kylin"
+VERSION_ID="V10"
+PRETTY_NAME="Kylin Linux Advanced Server V10 (Tercel)"
+ANSI_COLOR="0;31"

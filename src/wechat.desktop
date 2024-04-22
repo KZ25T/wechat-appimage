@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=wechat
+StartupNotify=true
+Terminal=false
+Icon=wechat
+Type=Application
+Categories=Utility;
+Comment=微信桌面版
