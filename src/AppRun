@@ -21,8 +21,10 @@ if [ $# -eq 1 ]; then
 		exit $?
 	fi
 	if [ "$1" = "--install" ]; then
-		cp $APPDIR/usr/share/applications/wechat.desktop /usr/share/applications
-		cp $APPDIR/usr/share/icons/hicolor/256x256/apps/wechat.png /usr/share/icons/hicolor/256x256/apps
+		cp $APPIMAGE /usr/bin/wechat
+		cp $APPDIR/wechat.desktop /usr/share/applications
+		cp $APPDIR/wechat.png /usr/share/icons/hicolor/256x256/apps
+		sed -i 's#Icon=wechat#Icon=/usr/share/icons/hicolor/256x256/apps/wechat.png#g' /usr/share/applications/wechat.desktop
 		exit $?
 	fi
 	if [ "$1" = "--remove" ]; then

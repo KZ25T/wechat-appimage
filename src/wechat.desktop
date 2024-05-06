@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=wechat
+Exec=wechat %U
 StartupNotify=true
 Terminal=false
 Icon=wechat

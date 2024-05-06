@@ -76,8 +76,7 @@ appimagetool ./src
 
 ```bash
 # 安装
-sudo mv wechat-x86_64.AppImage /usr/bin/wechat
-sudo wechat --install # 安装图标、桌面文件
+sudo ./wechat-x86_64.AppImage --install
 # 卸载
 sudo wechat --remove
 ```
@@ -102,7 +101,7 @@ wechat-x86_64.AppImage --help
 wechat-x86_64.AppImage --debug
 # 关闭微信进程（早期版本无法退出，现在应该不需要这个功能了）
 wechat-x86_64.AppImage --kill
-# 安装图标、桌面文件
+# 安装图标、桌面文件、应用
 sudo wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用
 sudo wechat-x86_64.AppImage --remove
