@@ -3,7 +3,7 @@
 使用 AppImage 运行 Linux 原生微信
 
 - 无需安装，下载即可运行，删除即可卸载。
-- 无需更改系统的 `lsb-release` 等 `/etc` 内的文件
+- 无需更改系统配置文件（`/etc/lsb-release`等）
 - 无需 sudo
 - 限制读写目录，以防在操作系统里到处乱放文件
 
@@ -23,21 +23,32 @@
 
 ### 从 release 下载
 
-在本仓库 release 下载 x86_64 版，该版本基于[吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)给出的 238 版构建。下载后记得给执行权限。
+在本仓库 release 下载 x86_64 版，该版本基于[吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)给出的 238 版构建。
+
+下载后记得给执行权限。
 
 ### 自行构建
 
-以下构建方式仅测试过 238 的 x86_64 版。
+以下构建方式仅测试过 238 和 241 的 x86_64 版。
 
-下载本仓库，同时下载一个微信 Linux 版本的 deb 包，还需要下载“优麒麟微信”deb 包（自己上网搜），在后者里提取 libactivation.so 备用。
+下载本仓库，同时下载一个微信 Linux 版本的 deb 包，下载地址：
 
-解包 deb，移植文件：
+- [吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)，或
+- [银河麒麟deb仓库](https://archive2.kylinos.cn/deb/kylin/production/PART-V10-SP1/custom/partner/V10-SP1/pool/all/)，搜索 `wechat-beta`
+
+还需要下载“优麒麟微信”deb 包：
+
+- [优麒麟微信](https://www.ubuntukylin.com/applications/106-cn.html)
+
+在后者里提取 libactivation.so 备用。
+
+解包第一个 deb，移植文件：
 
 ```bash
 # pwd 为仓库根目录
 dpkg -X your_wechat.deb /tmp/out
 cp -r /tmp/out/opt src         # 大部分文件
-mkdir -p src/usr/lib           # 把 libactivation.so 挪进来
+mkdir -p src/usr/lib           # 把第二个微信的 libactivation.so 挪进来
 ```
 
 安装 appimagetool（自己上网搜）
