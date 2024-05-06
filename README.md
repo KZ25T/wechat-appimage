@@ -23,7 +23,7 @@
 
 ### 从 release 下载
 
-在本仓库 release 下载 x86_64 版，该版本基于[吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)给出的 238 版构建。
+在本仓库 release 下载 x86_64 版，两个 release 基于 238 和 241 版构建，建议使用新的 241 版。
 
 下载后记得给执行权限。
 
@@ -83,28 +83,31 @@ sudo wechat --remove
 
 安装后你可以在桌面添加类似的启动器图标。
 
-安装图标只涉及两个文件：
+安装过程只涉及三个文件：
 
 ```text
+/usr/bin/wechat
 /usr/share/icons/hicolor/256x256/apps/wechat.png
 /usr/share/applications/wechat.desktop
 ```
 
-如果想要在桌面上加上图标，只需要把第二个文件复制到桌面。
+如果想要在桌面上加上图标，只需要把第三个文件复制到桌面。
 
 ### 更多功能
 
 ```bash
 # 帮助
-wechat-x86_64.AppImage --help
+./wechat-x86_64.AppImage --help
 # 进入 bwrap 的 shell(bash)
-wechat-x86_64.AppImage --debug
+./wechat-x86_64.AppImage --debug
 # 关闭微信进程（早期版本无法退出，现在应该不需要这个功能了）
-wechat-x86_64.AppImage --kill
+./wechat-x86_64.AppImage --kill
 # 安装图标、桌面文件、应用
-sudo wechat-x86_64.AppImage --install
+sudo ./wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用
-sudo wechat-x86_64.AppImage --remove
+sudo ./wechat-x86_64.AppImage --remove
+# 解包文件（这属于 appimage 的功能，参考 appimage 文档，其他 appimage 功能不再列出）
+./wechat-x86_64.AppImage --appimage-extract
 ```
 
 ## 声明
