@@ -2,10 +2,46 @@
 
 使用 AppImage 运行 Linux 原生微信
 
-- 无需安装，下载即可运行，删除即可卸载。
-- 无需更改系统配置文件（`/etc/lsb-release`等）
-- 无需 sudo
-- 限制读写目录，以防在操作系统里到处乱放文件
+优点：
+
+- [x] **使用方便**，无需像 flatpak 等那样存在诸多配置问题。下载即可运行，删除即可卸载。
+- [x] **免权限**，从下载到运行，无需 sudo 权限。
+- [x] **不修改系统**，无需修改系统配置文件（`/etc/lsb-release`等）
+- [x] **不乱放文件**，限制读写目录，以防在操作系统里到处乱放文件
+- [x] **体积小**，最小只需 47MB，flatpak 等方案需要多达 GB 级别。
+- [x] **适配多**，Debian/RHEL/Arch/Gentoo 等发行版均可使用。
+
+直接安装原版微信，不使用本 AppImage 的缺点：
+
+- 😕 **使用麻烦**，需要安装 deb 包，无法直接卸载。
+- 😕 **需要 root 权限**，需要 sudo 才能安装。
+- 😕 **乱改系统**，原版微信有发行版检测，需要修改一些系统关键配置。
+- 😕 **乱放文件**，家目录、`/var`目录都有放置。
+- 😕 **体积大**，需要几百 MB 存储空间。
+- 😕 **适配少**，只有 deb 包，没有 rpm/pkg 等安装包。
+
+适配操作系统（已测试）：
+
+- [x] **Debian** Debian 12 可直接运行。
+- [x] **Kali Linux** Kali Linux Rolling 可直接运行。
+- [x] **Ubuntu** 22.04、24.04 进行下面操作后可以运行。（建议先尝试能否直接运行，不能的再按照下面操作）
+  - 需要安装：`sudo apt install libfuse2`
+  - 需要运行：`sudo rm /var/lib/dbus/machine-id && sudo cp /etc/machine-id /var/lib/dbus/machine-id`
+  - 需要把下面内容写入 `/etc/apparmor.d/bwrap`：
+
+    ```text
+    abi <abi/4.0>,
+    include <tunables/global>
+
+    profile bwrap /usr/bin/bwrap flags=(unconfined) {
+      userns,
+
+      # Site-specific additions and overrides. See local/README for details.
+      include if exists <local/bwrap>
+    }
+    ```
+
+    然后运行 `sudo systemctl reload apparmor`
 
 ## 使用前提
 
@@ -64,8 +100,6 @@ appimagetool ./src
 
 ## 运行方法
 
-已经测试在 Debian 和 kali 运行过，理论上来讲各种发行版都行。
-
 注：实际测试中有极少时候第一次扫码之后没反应，此时可以关闭重新启动扫码。
 
 ### 简单运行
@@ -73,6 +107,8 @@ appimagetool ./src
 直接双击此文件或者命令行启动即可。
 
 ### 安装运行
+
+如果您计划长期使用本 AppImage，那么我推荐在这里安装运行。如果只是简单体验，那么选择上一条即可。
 
 ```bash
 # 安装
