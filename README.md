@@ -57,7 +57,7 @@
 
 ### 使用须知
 
-- 目前根据最新版本来看，该微信**不支持**回复消息、发送含有中文文件名的文件等，期待当前微信进一步改进。
+- 目前根据最新版本来看，该微信**不支持**回复消息，期待当前微信进一步改进。
 
 ## 获取 AppImage 文件
 
@@ -142,6 +142,8 @@ sudo wechat --remove
 ./wechat-x86_64.AppImage --debug
 # 关闭微信进程（早期版本无法退出，现在应该不需要这个功能了）
 ./wechat-x86_64.AppImage --kill
+# 检查更新（显示下载链接）
+./wechat-x86_64.AppImage --update
 # 安装图标、桌面文件、应用
 sudo ./wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用

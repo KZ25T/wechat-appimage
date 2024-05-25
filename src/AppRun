@@ -9,6 +9,7 @@ if [ $# -eq 1 ]; then
 		echo "Options:"
 		echo "    --debug                   return a shell but not wechat"
 		echo "    --kill                    to kill wechat process"
+		echo "    --update                  to check update"
 		echo "    --install (root required) to install desktop file"
 		echo "    --remove  (root required) to remove installation above"
 		exit $?
@@ -31,6 +32,10 @@ if [ $# -eq 1 ]; then
 		rm /usr/share/applications/wechat.desktop
 		rm /usr/share/icons/hicolor/256x256/apps/wechat.png
 		rm $APPIMAGE
+		exit $?
+	fi
+	if [ "$1" = "--update" ]; then
+		echo "please go to https://github.com/KZ25T/wechat-appimage/releases to check update"
 		exit $?
 	fi
 fi
@@ -83,6 +88,7 @@ bwrap --die-with-parent                                                   \
 	--ro-bind  /etc/passwd                      /etc/passwd               \
 	--ro-bind  /etc/resolv.conf                 /etc/resolv.conf          \
 	--ro-bind  $APPDIR/usr/lib/libactivation.so /usr/lib/libactivation.so \
+	--ro-bind  /usr/lib/locale                  /usr/lib/locale           \
 	--ro-bind  /usr/lib/x86_64-linux-gnu        /usr/lib/x86_64-linux-gnu \
 	--ro-bind  /usr/lib/udev                    /usr/lib/udev             \
 	--ro-bind  /run/user/$UID                   /run/user/$UID            \
