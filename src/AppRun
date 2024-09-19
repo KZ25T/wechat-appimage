@@ -53,10 +53,10 @@ if [ -e ~/.config/user-dirs.dirs ]; then
 	source ~/.config/user-dirs.dirs
 	WECHAT_CFG_DIR=${XDG_DOCUMENTS_DIR}/xwechat_files
 	mkdir -p ${WECHAT_CFG_DIR}
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${XDG_DESKTOP_DIR}   ${XDG_DESKTOP_DIR}   "
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${XDG_DOCUMENTS_DIR} ${XDG_DOCUMENTS_DIR} "
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${XDG_DOWNLOAD_DIR}  ${XDG_DOWNLOAD_DIR}  "
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${WECHAT_CFG_DIR}    $HOME/xwechat_files  "
+	BWRAP_FILE_APPEND+="--bind ${XDG_DESKTOP_DIR}   ${XDG_DESKTOP_DIR}   "
+	BWRAP_FILE_APPEND+="--bind ${XDG_DOCUMENTS_DIR} ${XDG_DOCUMENTS_DIR} "
+	BWRAP_FILE_APPEND+="--bind ${XDG_DOWNLOAD_DIR}  ${XDG_DOWNLOAD_DIR}  "
+	BWRAP_FILE_APPEND+="--bind ${WECHAT_CFG_DIR}    $HOME/xwechat_files  "
 else
 	echo ">>>>> WARNING: no xdg config file (~/.config/user-dirs.dirs) found."
 	echo ">>>>> YOU SHOULD CONFIG IT but now wechat will try continue to run."
@@ -64,13 +64,19 @@ fi
 FONT1=$HOME/.cache/fontconfig
 FONT2=$HOME/.config/fontconfig
 if [ -e ${FONT1} ]; then
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${FONT1}             ${FONT1}             "
+	BWRAP_FILE_APPEND+="--bind ${FONT1} ${FONT1} "
 fi
 if [ -e ${FONT2} ]; then
-	BWRAP_FILE_APPEND="${BWRAP_FILE_APPEND} --bind ${FONT2}             ${FONT2}             "
+	BWRAP_FILE_APPEND+="--bind ${FONT2} ${FONT2} "
 fi
+# append video devices
+BWRAP_DEVICE_APPEND="--dev-bind /dev/snd /dev/snd"
+for video_device in /dev/video*; do
+    BWRAP_DEVICE_APPEND+=" --dev-bind $video_device $video_device"
+done
+# run bubblewrap env
 mkdir -p $HOME/.xwechat
-bwrap --die-with-parent                                                   \
+bwrap --die-with-parent                                                       \
 	--ro-bind  /                                /                         \
 	--tmpfs    /sys  --tmpfs /home              --tmpfs /etc --proc /proc \
 	--tmpfs    /run  --tmpfs /usr/lib           --tmpfs /tmp --dev  /dev  \
@@ -85,7 +91,6 @@ bwrap --die-with-parent                                                   \
 	--ro-bind  /etc/hosts                       /etc/hosts                \
 	--ro-bind  /etc/ld.so.cache                 /etc/ld.so.cache          \
 	--ro-bind  /etc/localtime                   /etc/localtime            \
-	--ro-bind  /etc/machine-id                  /etc/machine-id           \
 	--ro-bind  /etc/passwd                      /etc/passwd               \
 	--ro-bind  /etc/resolv.conf                 /etc/resolv.conf          \
 	--ro-bind  $APPDIR/usr/lib/libactivation.so /usr/lib/libactivation.so \
@@ -94,8 +99,7 @@ bwrap --die-with-parent                                                   \
 	--ro-bind  /usr/lib/udev                    /usr/lib/udev             \
 	--ro-bind  /run/user/$UID                   /run/user/$UID            \
 	--bind     $HOME/.xwechat                   $HOME/.xwechat            \
-	${BWRAP_FILE_APPEND}                                                  \
-	${BWRAP_ENV_APPEND}                                                   \
+	${BWRAP_FILE_APPEND} ${BWRAP_ENV_APPEND} ${BWRAP_DEVICE_APPEND}       \
 	${EXEC}
 # refer: https://blog.lilydjwg.me/2021/8/12/using-bwrap.215869.html
 # refer: https://github.com/lfift/wechat-beta-bwrap/blob/main/wechat.sh
