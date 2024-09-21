@@ -1,6 +1,6 @@
 #!/bin/bash
-export PATH="$APPDIR/opt/wechat-beta:$PATH"
-export LD_LIBRARY_PATH="$APPDIR/opt/wechat-beta:$APPDIR/usr/lib"
+export PATH="/opt/wechat-beta:$PATH"
+export LD_LIBRARY_PATH="/opt/wechat-beta:/usr/lib"
 export LANG=zh_CN.UTF-8
 EXEC="wechat"
 if [ $# -eq 1 ]; then
@@ -41,12 +41,8 @@ if [ $# -eq 1 ]; then
 fi
 # wechat-beta only support xcb
 BWRAP_ENV_APPEND="--setenv QT_QPA_PLATFORM xcb "
-if [ -z ${QT_IM_MODULE} ]; then
-	BWRAP_ENV_APPEND="${BWRAP_ENV_APPEND} --setenv QT_IM_MODULE fcitx"
-fi
-if [ -z ${GTK_USE_PORTAL} ]; then
-	BWRAP_ENV_APPEND="${BWRAP_ENV_APPEND} --setenv GTK_USE_PORTAL 1"
-fi
+[ -z ${QT_IM_MODULE} ]   && BWRAP_ENV_APPEND+="--setenv QT_IM_MODULE fcitx "
+[ -z ${GTK_USE_PORTAL} ] && BWRAP_ENV_APPEND+="--setenv GTK_USE_PORTAL 1 "
 # append user config file
 BWRAP_FILE_APPEND=""
 if [ -e ~/.config/user-dirs.dirs ]; then
@@ -63,40 +59,53 @@ else
 fi
 FONT1=$HOME/.cache/fontconfig
 FONT2=$HOME/.config/fontconfig
-if [ -e ${FONT1} ]; then
-	BWRAP_FILE_APPEND+="--bind ${FONT1} ${FONT1} "
+XAUTH=$HOME/.Xauthority
+[ -e ${FONT1} ] && BWRAP_FILE_APPEND+="--ro-bind ${FONT1} ${FONT1} "
+[ -e ${FONT2} ] && BWRAP_FILE_APPEND+="--ro-bind ${FONT2} ${FONT2} "
+# append runtime lib file
+[ -e /etc/os-release ] && source /etc/os-release
+LIBBIND=""
+if [[ "$ID" == "debian" || "$ID_LIKE" == "debian" ]]; then
+    # this is debian derived.
+    LIBBIND="--tmpfs /usr/lib"
+    BWRAP_FILE_APPEND+="--ro-bind /usr/lib/locale           /usr/lib/locale           "
+    BWRAP_FILE_APPEND+="--ro-bind /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu "
+    BWRAP_FILE_APPEND+="--ro-bind /usr/lib/udev             /usr/lib/udev             "
+elif [[ "$ID" == "fedora" || -e /usr/bin/rpm ]]; then
+    # this is RHEL derived.
+    LIBBIND="--tmpfs /usr/lib"
+    BWRAP_FILE_APPEND+="--ro-bind /usr/lib/locale /usr/lib/locale "
+    BWRAP_FILE_APPEND+="--ro-bind /usr/lib/udev   /usr/lib/udev   "
+    [ -e /usr/lib64/libbz2.so.1 ] && BWRAP_FILE_APPEND+="--ro-bind /usr/lib64/libbz2.so.1 /usr/lib/libbz2.so.1.0 "
+else
+    echo "Not a Debian distribution."
+    LIBBIND="--bind /usr/lib /usr/lib"
+    [ -e ${XAUTH} ] && BWRAP_FILE_APPEND+="--ro-bind ${XAUTH} ${XAUTH} "
 fi
-if [ -e ${FONT2} ]; then
-	BWRAP_FILE_APPEND+="--bind ${FONT2} ${FONT2} "
-fi
+# append system config file
+ETCFILES=(/etc/alternatives /etc/fonts /etc/hostname /etc/hosts /etc/ld.so.cache \
+          /etc/localtime    /etc/machine-id     /etc/passwd     /etc/resolv.conf)
+for ETCFILE in "${ETCFILES[@]}"; do
+    [ -e ${ETCFILE} ] && BWRAP_FILE_APPEND+="--ro-bind ${ETCFILE} ${ETCFILE} "
+done     
 # append video devices
-BWRAP_DEVICE_APPEND="--dev-bind /dev/snd /dev/snd"
-for video_device in /dev/video*; do
+BWRAP_DEVICE_APPEND=""
+[ -e /dev/snd ] && BWRAP_DEVICE_APPEND="--dev-bind /dev/snd /dev/snd"
+[ -e /dev/video0 ] && for video_device in /dev/video*; do
     BWRAP_DEVICE_APPEND+=" --dev-bind $video_device $video_device"
 done
 # run bubblewrap env
 mkdir -p $HOME/.xwechat
-bwrap --die-with-parent                                                       \
+bwrap --die-with-parent                                                   \
 	--ro-bind  /                                /                         \
 	--tmpfs    /sys  --tmpfs /home              --tmpfs /etc --proc /proc \
-	--tmpfs    /run  --tmpfs /usr/lib           --tmpfs /tmp --dev  /dev  \
-	--ro-bind  $APPDIR                          $APPDIR                   \
+	--tmpfs    /run  ${LIBBIND}                 --tmpfs /tmp --dev  /dev  \
+	--ro-bind  $APPDIR/opt                      /opt                      \
 	--ro-bind  $APPDIR/etc/os-release           /etc/os-release           \
 	--ro-bind  $APPDIR/etc/lsb-release          /etc/lsb-release          \
 	--ro-bind  $APPDIR/etc/.kyact               /etc/.kyact               \
 	--ro-bind  $APPDIR/etc/LICENSE              /etc/LICENSE              \
-	--ro-bind  /etc/alternatives                /etc/alternatives         \
-	--ro-bind  /etc/fonts                       /etc/fonts                \
-	--ro-bind  /etc/hostname                    /etc/hostname             \
-	--ro-bind  /etc/hosts                       /etc/hosts                \
-	--ro-bind  /etc/ld.so.cache                 /etc/ld.so.cache          \
-	--ro-bind  /etc/localtime                   /etc/localtime            \
-	--ro-bind  /etc/passwd                      /etc/passwd               \
-	--ro-bind  /etc/resolv.conf                 /etc/resolv.conf          \
 	--ro-bind  $APPDIR/usr/lib/libactivation.so /usr/lib/libactivation.so \
-	--ro-bind  /usr/lib/locale                  /usr/lib/locale           \
-	--ro-bind  /usr/lib/x86_64-linux-gnu        /usr/lib/x86_64-linux-gnu \
-	--ro-bind  /usr/lib/udev                    /usr/lib/udev             \
 	--ro-bind  /run/user/$UID                   /run/user/$UID            \
 	--bind     $HOME/.xwechat                   $HOME/.xwechat            \
 	${BWRAP_FILE_APPEND} ${BWRAP_ENV_APPEND} ${BWRAP_DEVICE_APPEND}       \

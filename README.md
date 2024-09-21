@@ -1,93 +1,74 @@
 # 微信 AppImage
 
-使用 AppImage 运行 Linux 原生微信，使用方法非常简单。
+使用 AppImage 运行 Linux 原生微信，使用方法非常简单，支持多种操作系统。
 
-简单使用方法：从本仓库的 release 下载 `wechat-x86_64.3.AppImage`，下载目录打开终端运行 `chmod a+x wechat-x86_64.3.AppImage`，再运行 `./wechat-x86_64.3.AppImage` 即可。详细说明和使用方法请参见下文。
+[TOC]
 
----
+## 1 项目特色
 
-优点：
-
-- [x] **使用方便**，无需像 flatpak 等那样存在诸多配置问题。下载即可运行，删除即可卸载。
+- [x] **使用方便**，没有配置问题，下载即可运行，删除即可卸载。
 - [x] **免权限**，从下载到运行，无需 sudo 权限。
 - [x] **不修改系统**，无需修改系统配置文件（`/etc/lsb-release`等）
 - [x] **不乱放文件**，限制读写目录，以防在操作系统里到处乱放文件
 - [x] **体积小**，最小只需 47MB，flatpak 等方案需要多达 GB 级别。
 - [x] **适配多**，Debian/RHEL/Arch/Gentoo 等发行版均可使用。
 
-直接安装原版微信，不使用本 AppImage 的缺点：
+其他安装方法的缺点：
 
-- 😕 **使用麻烦**，需要安装 deb 包，无法直接卸载。
+- 😕 **使用麻烦**，原版需要安装 deb 包，无法直接卸载；flatpak 等方式配置复杂。
 - 😕 **需要 root 权限**，需要 sudo 才能安装。
 - 😕 **乱改系统**，原版微信有发行版检测，需要修改一些系统关键配置。
 - 😕 **乱放文件**，家目录、`/var`目录都有放置。
 - 😕 **体积大**，需要几百 MB 存储空间。
 - 😕 **适配少**，只有 deb 包，没有 rpm/pkg 等安装包。
 
-适配操作系统（已测试）：
+## 2 发行版适配
 
-> 注：比较新发行版请使用 release 里的 libfuse3 版本，但也有可能只有 libfuse2 能运行。
-> 如果您自行打包，那么最新的 appimagetool 打包结果是 libfuse3 版本，比较老的是 libfuse2 版本。
+目前该项目已测试并支持 Debian/Arch/RHEL 系发行版。详细适配情况或其他操作见[适配目录](./distros.md)。
 
-- [x] **Debian** Debian 12 可直接运行。
-- [x] **Kali Linux** Kali Linux Rolling 可直接运行。
-- [x] **Ubuntu** 22.04、24.04 进行下面操作后可以运行。（建议先尝试能否直接运行，不能的再按照下面操作）
-  - 需要把下面内容写入 `/etc/apparmor.d/bwrap`：
+## 3 快速开始
 
-    ```text
-    abi <abi/4.0>,
-    include <tunables/global>
+本节仅针对 `x86_64` 架构，其他架构请自行打包。
 
-    profile bwrap /usr/bin/bwrap flags=(unconfined) {
-      userns,
+### 3.1 检查运行环境
 
-      # Site-specific additions and overrides. See local/README for details.
-      include if exists <local/bwrap>
-    }
-    ```
+1. 检查[适配目录](./distros.md)，检查自己的发行版是否支持，或者是否需要额外的操作。未经测试的发行版可能需要自行修复一些问题。欢迎经过测试后向本仓库提起 issue，我将添加到适配目录。
+2. 操作系统需要有 bwrap 命令（常见发行版都有），若没有请参考[此网站](https://command-not-found.com/bwrap)。
+3. 检查操作系统是否有 XDG 用户目录（常见发行版都有）：
+   - 查看 `~/.config/user-dirs.dirs`（必须有这个文件）
+   - 上述文件里面要有 `XDG_DESKTOP_DIR`、`XDG_DOWNLOAD_DIR` 和 `XDG_DOCUMENTS_DIR`
+   - 运行时，在用户目录下，微信只能读写：
+     - 这三个目录，也就是桌面、下载、文档（应该够用了，不够用的自己改源码）
+     - 微信数据库文件（放在 `${XDG_DOCUMENTS_DIR}/xwechat_files` 下，原生微信是 `~/xwechat_files`）
+     - 微信配置文件（`~/.xwechat`）
+     - 字体配置文件和（可能有的）显示配置文件。
 
-    然后运行 `sudo systemctl reload apparmor`
+### 3.2 获取 AppImage 文件并运行
 
-- 😕 **Fedora** Fedora 40 暂不能运行。（敬请期待……作者本人只使用 Debian 系，RedHat 系的库有些奇怪，作者可能稍后补充）
+1. 下载：打开[Releases](https://github.com/KZ25T/wechat-appimage/releases)，依说明下载符合你的需求的最新版本的文件。若你不知道下载哪一个，请下载 `wechat-x86_64.AppImage`
+2. 修改权限：找到该文件下载路径，添加可执行权限：`chmod a+x wechat-x86_64.AppImage`
+3. 运行：从命令行运行 `./wechat-x86_64.AppImage`，或双击该文件运行。
 
-## 使用前提
+## 4 从本仓库构造 AppImage
 
-- 需要安装 bwrap（常见发行版都有）
-- 需要有 XDG 用户目录（常见发行版都有）
-  - 查看 `~/.config/user-dirs.dirs`（必须有这个文件）
-  - 里面要有 `XDG_DESKTOP_DIR`、`XDG_DOWNLOAD_DIR` 和 `XDG_DOCUMENTS_DIR`
-  - 运行时，在用户目录下，微信只能读写：
-    - 这三个目录，也就是桌面、下载、文档（应该够用了，不够用的自己改源码）
-    - 微信数据库文件（放在 `${XDG_DOCUMENTS_DIR}/xwechat_files` 下，原生微信是 `~/xwechat_files`）
-    - 微信配置文件（`~/.xwechat`）
-    - 字体配置文件。
+如果需要修改 AppRun 里的内容，或者架构不符，你可以按照如下方法自行打包 AppImage 运行。
 
-### 使用须知
+> 注：本说明暂未给 x86_64 以外的架构以完整支持。
 
-- 目前根据最新版本来看，该微信**不支持**回复消息，期待当前微信进一步改进。
+### 4.1 下载原包
 
-## 获取 AppImage 文件
+1. 下载本仓库。
+2. 下载一个微信 Linux 版本的 deb 包，下载地址：
 
-### 从 release 下载
+   - [吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)，或
+   - [银河麒麟deb仓库](https://archive2.kylinos.cn/deb/kylin/production/PART-V10-SP1/custom/partner/V10-SP1/pool/all/)，搜索 `wechat-beta`
 
-在本仓库 release 下载 x86_64 版，两个 release 基于 238 和 241 版构建，建议使用新的 241 版。
+3. 下载“优麒麟微信”deb 包：
 
-下载后记得给执行权限。
+   - [优麒麟微信](https://www.ubuntukylin.com/applications/106-cn.html)
+   - 这个包只需要提取 `libactivation.so` 备用。
 
-### 自行构建
-
-以下构建方式仅测试过 238 和 241 的 x86_64 版。
-
-下载本仓库，同时下载一个微信 Linux 版本的 deb 包，下载地址：
-
-- [吾爱破解](https://www.52pojie.cn/thread-1896902-1-1.html)，或
-- [银河麒麟deb仓库](https://archive2.kylinos.cn/deb/kylin/production/PART-V10-SP1/custom/partner/V10-SP1/pool/all/)，搜索 `wechat-beta`
-
-还需要下载“优麒麟微信”deb 包：
-
-- [优麒麟微信](https://www.ubuntukylin.com/applications/106-cn.html)
-
-在后者里提取 libactivation.so 备用。
+### 4.2 自行打包
 
 解包第一个 deb，移植文件：
 
@@ -109,17 +90,15 @@ appimagetool ./src
 
 可以取得 `wechat-x86_64.AppImage`
 
-## 运行方法
+### 4.3 其他架构的注意事项
 
-注：实际测试中有极少时候第一次扫码之后没反应，此时可以关闭重新启动扫码。
+其他架构可能需要修改 AppRun 的第 72 行。
 
-### 简单运行
+## 5 高级用法
 
-直接双击此文件或者命令行启动即可。
+### 5.1 安装运行
 
-### 安装运行
-
-如果您计划长期使用本 AppImage，那么我推荐在这里安装运行。如果只是简单体验，那么选择上一条即可。
+如果您计划长期使用本 AppImage，那么我推荐在这里安装运行。
 
 ```bash
 # 安装
@@ -140,7 +119,7 @@ sudo wechat --remove
 
 如果想要在桌面上加上图标，只需要把第三个文件复制到桌面。
 
-### 更多功能
+### 5.2 更多功能
 
 ```bash
 # 帮助
@@ -154,16 +133,16 @@ sudo wechat --remove
 # 安装图标、桌面文件、应用
 sudo ./wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用
-sudo ./wechat-x86_64.AppImage --remove
+sudo wechat --remove
 # 解包文件（这属于 appimage 的功能，参考 appimage 文档，其他 appimage 功能不再列出）
 ./wechat-x86_64.AppImage --appimage-extract
 ```
 
-## 声明
+## 6 声明
 
 本仓库仅供学习交流使用，且未经过严格测试，使用本仓库造成的一切后果由使用者负责。
 
-## 参考
+## 7 参考
 
 参考：[依云's Blog - 使用 bwrap 沙盒](https://blog.lilydjwg.me/2021/8/12/using-bwrap.215869.html)
 
