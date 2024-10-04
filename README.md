@@ -103,20 +103,24 @@ appimagetool ./src
 如果您计划长期使用本 AppImage，那么我推荐在这里安装运行。
 
 ```bash
-# 安装
-sudo ./wechat-x86_64.AppImage --install
-# 卸载
-sudo wechat --remove
+# 安装（可以加 sudo 安装到系统目录）
+./wechat-x86_64.AppImage --install
+# 卸载（可以加 sudo 从系统目录卸载）
+wechat --remove
 ```
+
+> 普通用户直接安装会装到 `~/.local` 下，加上 `sudo` 会安装在 `/usr/local` 下。
+> 卸载时是否使用 `sudo` 和安装时应保持一致。
 
 安装后你可以在桌面添加类似的启动器图标。
 
-安装过程只涉及三个文件：
+安装过程只涉及三个文件（或）：
 
-```text
-/usr/local/bin/wechat
-/usr/local/share/icons/hicolor/256x256/apps/wechat.png
-/usr/local/share/applications/wechat.desktop
+```bash
+# 若使用 sudo，把 ~/.local 换成 /usr/local
+~/.local/bin/wechat
+~/.local/share/icons/hicolor/256x256/apps/wechat.png
+~/.local/share/applications/wechat.desktop
 ```
 
 如果想要在桌面上加上图标，只需要把第三个文件复制到桌面。
@@ -141,9 +145,9 @@ sudo wechat --remove
 # 禁止微信读取 /run 下的文件（可能会导致不稳定）
 ./wechat-x86_64.AppImage --no-run-file
 # 安装图标、桌面文件、应用
-sudo ./wechat-x86_64.AppImage --install
+./wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用
-sudo wechat --remove
+wechat --remove
 # 解包文件（这属于 appimage 的功能，参考 appimage 文档，其他 appimage 功能不再列出）
 ./wechat-x86_64.AppImage --appimage-extract
 ```

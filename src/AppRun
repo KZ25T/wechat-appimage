@@ -115,8 +115,8 @@ if [ $OPT_HLP = true ]; then
 	echo "    --no-user-download        to disable mounting $XDG_DOWNLOAD_DIR"
 	echo "    --no-user-documents       to disable mounting $XDG_DOCUMENTS_DIR"
 	echo "    --no-run-file             to disable mounting /run/user/$UID"
-	echo "    --install (root required) to install desktop file"
-	echo "    --remove  (root required) to remove installation above"
+	echo "    --install                 to install desktop file"
+	echo "    --remove                  to remove installation above"
 	if [ $OPT_FAL = true ]; then exit 1; fi
 	exit 0
 fi
@@ -144,19 +144,30 @@ if [ $OPT_NRF = true ]; then
 	unset RUNFS
 fi
 if [ $OPT_IST = true ]; then
-	mkdir -p /usr/local/bin
-	cp $APPIMAGE /usr/local/bin/wechat
-	mkdir -p /usr/local/share/applications
-	cp $APPDIR/wechat.desktop /usr/local/share/applications
-	mkdir -p /usr/local/share/icons/hicolor/256x256/apps
-	cp $APPDIR/wechat.png /usr/local/share/icons/hicolor/256x256/apps
-	sed -i 's#Icon=wechat#Icon=/usr/local/share/icons/hicolor/256x256/apps/wechat.png#g' /usr/local/share/applications/wechat.desktop
+	if [ "$(id -u)" -eq 0 ]; then
+		INSTALL_DIR="/usr/local"
+	else
+		INSTALL_DIR="$HOME/.local"
+	fi
+	mkdir -p $INSTALL_DIR/bin
+	cp $APPIMAGE $INSTALL_DIR/bin/wechat
+	mkdir -p $INSTALL_DIR/share/applications
+	cp $APPDIR/wechat.desktop $INSTALL_DIR/share/applications
+	mkdir -p $INSTALL_DIR/share/icons/hicolor/256x256/apps
+	cp $APPDIR/wechat.png $INSTALL_DIR/share/icons/hicolor/256x256/apps
+	sed -i "s#Exec=wechat %U#Exec=$INSTALL_DIR/bin/wechat %U#g" $INSTALL_DIR/share/applications/wechat.desktop
+	sed -i "s#Icon=wechat#Icon=$INSTALL_DIR/share/icons/hicolor/256x256/apps/wechat.png#g" $INSTALL_DIR/share/applications/wechat.desktop
 	exit $?
 fi
 if [ $OPT_REM = true ]; then
-	rm /usr/local/share/applications/wechat.desktop
-	rm /usr/local/share/icons/hicolor/256x256/apps/wechat.png
-	rm /usr/local/bin/wechat
+	if [ "$(id -u)" -eq 0 ]; then
+		INSTALL_DIR="/usr/local"
+	else
+		INSTALL_DIR="$HOME/.local"
+	fi
+	rm $INSTALL_DIR/share/applications/wechat.desktop
+	rm $INSTALL_DIR/share/icons/hicolor/256x256/apps/wechat.png
+	rm $INSTALL_DIR/bin/wechat
 	exit $?
 fi
 
