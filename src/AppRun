@@ -1,68 +1,193 @@
 #!/bin/bash
 export PATH="/opt/wechat-beta:$PATH"
 export LD_LIBRARY_PATH="/opt/wechat-beta:/usr/lib"
-export LANG=zh_CN.UTF-8
-EXEC="wechat"
-if [ $# -eq 1 ]; then
-	if [ "$1" = "help"  -o "$1" = "--help"  ]; then
-		echo "Run wechat without options"
-		echo "Options:"
-		echo "    --debug                   return a shell but not wechat"
-		echo "    --kill                    to kill wechat process"
-		echo "    --update                  to check update"
-		echo "    --install (root required) to install desktop file"
-		echo "    --remove  (root required) to remove installation above"
-		exit $?
-	fi
-	if [ "$1" = "--debug" ]; then
-		EXEC="bash"
-	fi
-	if [ "$1" = "--kill"  ]; then
-		kill $(ps -e | grep wechat | grep -v "wechat-" | awk '{print $1}')
-		exit $?
-	fi
-	if [ "$1" = "--install" ]; then
-		cp $APPIMAGE /usr/bin/wechat
-		cp $APPDIR/wechat.desktop /usr/share/applications
-		cp $APPDIR/wechat.png /usr/share/icons/hicolor/256x256/apps
-		sed -i 's#Icon=wechat#Icon=/usr/share/icons/hicolor/256x256/apps/wechat.png#g' /usr/share/applications/wechat.desktop
-		exit $?
-	fi
-	if [ "$1" = "--remove" ]; then
-		rm /usr/share/applications/wechat.desktop
-		rm /usr/share/icons/hicolor/256x256/apps/wechat.png
-		rm $APPIMAGE
-		exit $?
-	fi
-	if [ "$1" = "--update" ]; then
-		echo "please go to https://github.com/KZ25T/wechat-appimage/releases to check update"
-		exit $?
-	fi
+if locale -a | grep -iq "zh_CN.utf8"; then
+	export LANG=zh_CN.utf8
+elif locale -a | grep -iq "zh_CN.UTF-8"; then
+	export LANG=zh_CN.UTF-8
 fi
+EXEC="wechat"
+RUNFS=/run/user/$UID
+BWRAP_FILE_APPEND=""
+
+OPT_HLP=false
+OPT_DBG=false
+OPT_KIL=false
+OPT_UPD=false
+OPT_NUDES=false
+OPT_NUDOW=false
+OPT_NUDOC=false
+OPT_NRF=false
+OPT_IST=false
+OPT_REM=false
+OPT_FAL=false
+
+OPTIONS=$(getopt -o '' -l help,debug,kill,update,no-user-desktop,no-user-download,no-user-documents,no-run-file,install,remove -- "$@")
+if [ $? -ne 0 ]; then
+  echo "Invalid argument." >&2
+  OPT_HLP=true
+  OPT_FAL=true
+fi
+
+eval set -- "$OPTIONS"
+option_count=0
+while true; do
+	case "$1" in
+		--help)
+			OPT_HLP=true
+			((option_count++))
+			shift
+			;;
+		--debug)
+			OPT_DBG=true
+			((option_count++))
+			shift
+			;;
+		--kill)
+			OPT_KIL=true
+			((option_count++))
+			shift
+			;;
+		--update)
+			OPT_UPD=true
+			((option_count++))
+			shift
+			;;
+		--no-user-desktop)
+			OPT_NUDES=true
+			((option_count++))
+			shift
+			;;
+		--no-user-download)
+			OPT_NUDOW=true
+			((option_count++))
+			shift
+			;;
+		--no-user-documents)
+			OPT_NUDOC=true
+			((option_count++))
+			shift
+			;;
+		--no-run-file)
+			OPT_NRF=true
+			((option_count++))
+			shift
+			;;
+		--install)
+			OPT_IST=true
+			((option_count++))
+			shift
+			;;
+		--remove)
+			OPT_REM=true
+			((option_count++))
+			shift
+			;;
+		--)
+			shift
+			break
+			;;
+		*)
+			echo "Invalid argument: $1" >&2
+			OPT_HLP=true
+			OPT_FAL=true
+			;;
+	esac
+done
+
+if [[ $option_count -gt 1 && ( $OPT_HLP = true || $OPT_KIL = true || $OPT_UPD = true || $OPT_IST = true || $OPT_REM = true ) ]]; then
+	echo "Error: Too much options." >&2
+	OPT_HLP=true
+	OPT_FAL=true
+fi
+
+if [ -e ~/.config/user-dirs.dirs ]; then
+	source ~/.config/user-dirs.dirs
+fi
+
+if [ $OPT_HLP = true ]; then
+	echo "You can run wechat without options, or with options below:"
+	echo "Options:"
+	echo "    --debug                   return a shell but not wechat"
+	echo "    --kill                    to kill wechat process"
+	echo "    --update                  to check update"
+	echo "    --no-user-desktop         to disable mounting $XDG_DESKTOP_DIR"
+	echo "    --no-user-download        to disable mounting $XDG_DOWNLOAD_DIR"
+	echo "    --no-user-documents       to disable mounting $XDG_DOCUMENTS_DIR"
+	echo "    --no-run-file             to disable mounting /run/user/$UID"
+	echo "    --install (root required) to install desktop file"
+	echo "    --remove  (root required) to remove installation above"
+	if [ $OPT_FAL = true ]; then exit 1; fi
+	exit 0
+fi
+if [ $OPT_DBG = true ]; then
+	EXEC="bash"
+fi
+if [ $OPT_KIL = true ]; then
+	kill $(ps -e | grep wechat | grep -v "wechat-" | awk '{print $1}')
+	exit $?
+fi
+if [ $OPT_UPD = true ]; then
+	echo "please go to https://github.com/KZ25T/wechat-appimage/releases to check update"
+	exit $?
+fi
+if [ $OPT_NUDES = true ]; then
+	:
+fi
+if [ $OPT_NUDOW = true ]; then
+	:
+fi
+if [ $OPT_NUDOC = true ]; then
+	:
+fi
+if [ $OPT_NRF = true ]; then
+	unset RUNFS
+fi
+if [ $OPT_IST = true ]; then
+	mkdir -p /usr/local/bin
+	cp $APPIMAGE /usr/local/bin/wechat
+	mkdir -p /usr/local/share/applications
+	cp $APPDIR/wechat.desktop /usr/local/share/applications
+	mkdir -p /usr/local/share/icons/hicolor/256x256/apps
+	cp $APPDIR/wechat.png /usr/local/share/icons/hicolor/256x256/apps
+	sed -i 's#Icon=wechat#Icon=/usr/local/share/icons/hicolor/256x256/apps/wechat.png#g' /usr/local/share/applications/wechat.desktop
+	exit $?
+fi
+if [ $OPT_REM = true ]; then
+	rm /usr/local/share/applications/wechat.desktop
+	rm /usr/local/share/icons/hicolor/256x256/apps/wechat.png
+	rm /usr/local/bin/wechat
+	exit $?
+fi
+
+if [ ! -e ~/.config/user-dirs.dirs ]; then
+	echo -e "\e[33m>>>>> WARNING: no xdg config file (~/.config/user-dirs.dirs) found.\e[0m"
+	echo -e "\e[33m>>>>> YOU SHOULD CONFIG IT but now wechat will try continue to run.\e[0m"
+fi
+
 # wechat-beta only support xcb
 BWRAP_ENV_APPEND="--setenv QT_QPA_PLATFORM xcb "
 [ -z ${QT_IM_MODULE} ]   && BWRAP_ENV_APPEND+="--setenv QT_IM_MODULE fcitx "
 [ -z ${GTK_USE_PORTAL} ] && BWRAP_ENV_APPEND+="--setenv GTK_USE_PORTAL 1 "
-# append user config file
+
+# append bwrap mounting file
+## append user config file
 BWRAP_FILE_APPEND=""
 if [ -e ~/.config/user-dirs.dirs ]; then
-	source ~/.config/user-dirs.dirs
 	WECHAT_CFG_DIR=${XDG_DOCUMENTS_DIR}/xwechat_files
 	mkdir -p ${WECHAT_CFG_DIR}
-	BWRAP_FILE_APPEND+="--bind ${XDG_DESKTOP_DIR}   ${XDG_DESKTOP_DIR}   "
-	BWRAP_FILE_APPEND+="--bind ${XDG_DOCUMENTS_DIR} ${XDG_DOCUMENTS_DIR} "
-	BWRAP_FILE_APPEND+="--bind ${XDG_DOWNLOAD_DIR}  ${XDG_DOWNLOAD_DIR}  "
+	[ "$OPT_NUDES" == "false" ] && BWRAP_FILE_APPEND+="--bind ${XDG_DESKTOP_DIR}   ${XDG_DESKTOP_DIR}   "
+	[ "$OPT_NUDOC" == "false" ] && BWRAP_FILE_APPEND+="--bind ${XDG_DOCUMENTS_DIR} ${XDG_DOCUMENTS_DIR} "
+	[ "$OPT_NUDOW" == "false" ] && BWRAP_FILE_APPEND+="--bind ${XDG_DOWNLOAD_DIR}  ${XDG_DOWNLOAD_DIR}  "
 	BWRAP_FILE_APPEND+="--bind ${WECHAT_CFG_DIR}    $HOME/xwechat_files  "
-else
-	echo ">>>>> WARNING: no xdg config file (~/.config/user-dirs.dirs) found."
-	echo ">>>>> YOU SHOULD CONFIG IT but now wechat will try continue to run."
 fi
 FONT1=$HOME/.cache/fontconfig
 FONT2=$HOME/.config/fontconfig
 XAUTH=$HOME/.Xauthority
 [ -e ${FONT1} ] && BWRAP_FILE_APPEND+="--ro-bind ${FONT1} ${FONT1} "
 [ -e ${FONT2} ] && BWRAP_FILE_APPEND+="--ro-bind ${FONT2} ${FONT2} "
-# append runtime lib file
+[ -n "${RUNFS}" -a -e ${RUNFS} ] && BWRAP_FILE_APPEND+="--ro-bind ${RUNFS} ${RUNFS} "
+## append runtime lib file
 [ -e /etc/os-release ] && source /etc/os-release
 LIBBIND=""
 if [[ "$ID" == "debian" || "$ID_LIKE" == "debian" ]]; then
@@ -78,22 +203,24 @@ elif [[ "$ID" == "fedora" || -e /usr/bin/rpm ]]; then
     BWRAP_FILE_APPEND+="--ro-bind /usr/lib/udev   /usr/lib/udev   "
     [ -e /usr/lib64/libbz2.so.1 ] && BWRAP_FILE_APPEND+="--ro-bind /usr/lib64/libbz2.so.1 /usr/lib/libbz2.so.1.0 "
 else
-    echo "Not a Debian distribution."
+    echo "Not a Debian distribution. Try running as Arch Linux."
     LIBBIND="--bind /usr/lib /usr/lib"
     [ -e ${XAUTH} ] && BWRAP_FILE_APPEND+="--ro-bind ${XAUTH} ${XAUTH} "
 fi
-# append system config file
+## append system config file
 ETCFILES=(/etc/alternatives /etc/fonts /etc/hostname /etc/hosts /etc/ld.so.cache \
           /etc/localtime    /etc/machine-id     /etc/passwd     /etc/resolv.conf)
 for ETCFILE in "${ETCFILES[@]}"; do
     [ -e ${ETCFILE} ] && BWRAP_FILE_APPEND+="--ro-bind ${ETCFILE} ${ETCFILE} "
-done     
+done
+
 # append video devices
 BWRAP_DEVICE_APPEND=""
 [ -e /dev/snd ] && BWRAP_DEVICE_APPEND="--dev-bind /dev/snd /dev/snd"
 [ -e /dev/video0 ] && for video_device in /dev/video*; do
     BWRAP_DEVICE_APPEND+=" --dev-bind $video_device $video_device"
 done
+
 # run bubblewrap env
 mkdir -p $HOME/.xwechat
 bwrap --die-with-parent                                                   \
@@ -106,7 +233,6 @@ bwrap --die-with-parent                                                   \
 	--ro-bind  $APPDIR/etc/.kyact               /etc/.kyact               \
 	--ro-bind  $APPDIR/etc/LICENSE              /etc/LICENSE              \
 	--ro-bind  $APPDIR/usr/lib/libactivation.so /usr/lib/libactivation.so \
-	--ro-bind  /run/user/$UID                   /run/user/$UID            \
 	--bind     $HOME/.xwechat                   $HOME/.xwechat            \
 	${BWRAP_FILE_APPEND} ${BWRAP_ENV_APPEND} ${BWRAP_DEVICE_APPEND}       \
 	${EXEC}

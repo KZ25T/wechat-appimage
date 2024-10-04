@@ -49,6 +49,8 @@
 2. 修改权限：找到该文件下载路径，添加可执行权限：`chmod a+x wechat-x86_64.AppImage`
 3. 运行：从命令行运行 `./wechat-x86_64.AppImage`，或双击该文件运行。
 
+> 若不能运行或需要其他帮助请参阅[5.3节](#53-若无法使用-fuse3)
+
 ## 4 从本仓库构造 AppImage
 
 如果需要修改 AppRun 里的内容，或者架构不符，你可以按照如下方法自行打包 AppImage 运行。
@@ -112,9 +114,9 @@ sudo wechat --remove
 安装过程只涉及三个文件：
 
 ```text
-/usr/bin/wechat
-/usr/share/icons/hicolor/256x256/apps/wechat.png
-/usr/share/applications/wechat.desktop
+/usr/local/bin/wechat
+/usr/local/share/icons/hicolor/256x256/apps/wechat.png
+/usr/local/share/applications/wechat.desktop
 ```
 
 如果想要在桌面上加上图标，只需要把第三个文件复制到桌面。
@@ -130,12 +132,32 @@ sudo wechat --remove
 ./wechat-x86_64.AppImage --kill
 # 检查更新（显示下载链接）
 ./wechat-x86_64.AppImage --update
+# 禁止微信读取桌面
+./wechat-x86_64.AppImage --no-user-desktop
+# 禁止微信读取下载
+./wechat-x86_64.AppImage --no-user-download
+# 禁止微信读取文档
+./wechat-x86_64.AppImage --no-user-documents
+# 禁止微信读取 /run 下的文件（可能会导致不稳定）
+./wechat-x86_64.AppImage --no-run-file
 # 安装图标、桌面文件、应用
 sudo ./wechat-x86_64.AppImage --install
 # 卸载图标、桌面文件、应用
 sudo wechat --remove
 # 解包文件（这属于 appimage 的功能，参考 appimage 文档，其他 appimage 功能不再列出）
 ./wechat-x86_64.AppImage --appimage-extract
+```
+
+### 5.3 若无法使用 fuse3
+
+如果您的发行版未安装 `libfuse3`，或因为权限、容器等限制无法加载 `fuse` 模块，那么本微信将不能直接运行。
+
+您可以尝试在命令后面加上 `--appimage-extract-and-run`；如有其它选项，则不需要改变。如：
+
+```bash
+./wechat-x86_64.AppImage --appimage-extract-and-run
+./wechat-x86_64.AppImage --appimage-extract-and-run --help
+./wechat-x86_64.AppImage --appimage-extract-and-run --no-run-file --no-user-download
 ```
 
 ## 6 声明

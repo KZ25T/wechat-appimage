@@ -23,6 +23,7 @@
 
   - 然后运行 `sudo systemctl reload apparmor` 之后即可。
   - 注：Ubuntu 这个操作系统很奇怪，相比于标准 Debian，魔改的地方太多，不见得所有人都能按照以上方法运行好。如果不行请自己查询修改。
+  - 注2：Ubuntu 的 fuse 可能会出现问题，请参考 [README 的 5.3](./README.md#53-若无法使用-fuse3)
 
 ## Arch 系
 
