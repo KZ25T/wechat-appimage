@@ -36,12 +36,7 @@
 2. 操作系统需要有 bwrap 命令（常见发行版都有），若没有请参考[此网站](https://command-not-found.com/bwrap)。
 3. 检查操作系统是否有 XDG 用户目录（常见发行版都有）：
    - 查看 `~/.config/user-dirs.dirs`（必须有这个文件）
-   - 上述文件里面要有 `XDG_DESKTOP_DIR`、`XDG_DOWNLOAD_DIR` 和 `XDG_DOCUMENTS_DIR`
-   - 运行时，在用户目录下，微信只能读写：
-     - 这三个目录，也就是桌面、下载、文档（应该够用了，不够用的自己改源码）
-     - 微信数据库文件（放在 `${XDG_DOCUMENTS_DIR}/xwechat_files` 下，原生微信是 `~/xwechat_files`）
-     - 微信配置文件（`~/.xwechat`）
-     - 字体配置文件和（可能有的）显示配置文件。
+   - 上述文件里面要有 `XDG_DESKTOP_DIR`、`XDG_DOWNLOAD_DIR` 和 `XDG_DOCUMENTS_DIR`（桌面、下载和文档）
 
 ### 3.2 获取 AppImage 文件并运行
 
@@ -49,7 +44,20 @@
 2. 修改权限：找到该文件下载路径，添加可执行权限：`chmod a+x wechat-x86_64.AppImage`
 3. 运行：从命令行运行 `./wechat-x86_64.AppImage`，或双击该文件运行。
 
-> 若不能运行或需要其他帮助请参阅[5.3节](#53-若无法使用-fuse3)
+> 若不能运行或需要其他帮助请参阅[5.3节](#53-常见问题解决)
+
+### 3.3 常用文件与目录
+
+在用户目录下，微信涉及如下目录的读写：
+
+1. 桌面、下载、文档，参考[3.1节](#31-检查运行环境)的第三条。如果您需要上传或下载文件，那么建议下载到此目录。
+2. 微信数据库文件（放在 `文档/xwechat_files` 下），除非你明确知道为什么要删除它，否则不要删除。
+   - 该目录结构和 Windows 的微信相似。
+   - 微信聊天记录在这里。
+   - 上传或下载的文件也在这里：`文档/xwechat_files/wxid_XXXXXX/msg/file`
+   - 在微信的 bwrap 环境中，它的位置是 `~/xwechat_files`
+3. 微信配置文件（`~/.xwechat`），这个删除应该没太大影响。
+4. 字体配置文件和（可能涉及的）显示配置文件。
 
 ## 4 从本仓库构造 AppImage
 
@@ -152,9 +160,11 @@ wechat --remove
 ./wechat-x86_64.AppImage --appimage-extract
 ```
 
-### 5.3 若无法使用 fuse3
+### 5.3 常见问题解决
 
-如果您的发行版未安装 `libfuse3`，或因为权限、容器等限制无法加载 `fuse` 模块，那么本微信将不能直接运行。
+#### 5.3.1 AppImage 的问题
+
+如果您的发行版未安装 `libfuse3`，或因为权限、容器等限制无法加载 `fuse` 模块，那么本微信将不能直接以 AppImage 运行。
 
 您可以尝试在命令后面加上 `--appimage-extract-and-run`；如有其它选项，则不需要改变。如：
 
@@ -162,6 +172,37 @@ wechat --remove
 ./wechat-x86_64.AppImage --appimage-extract-and-run
 ./wechat-x86_64.AppImage --appimage-extract-and-run --help
 ./wechat-x86_64.AppImage --appimage-extract-and-run --no-run-file --no-user-download
+```
+
+#### 5.3.2 bwrap 的问题
+
+在 Ubuntu 中，bwrap 默认可能不允许创建用户空间。其他发行版暂未发现该情况，如果有 bwrap 的报错，请尝试在[适配目录](./distros.md)里参考 Ubuntu 的解法。
+
+#### 5.3.3 挂载目录的问题
+
+参考 bwrap 报错时有哪些未成功挂载的目录，您可以尝试编辑文件重新自行打包解决：
+
+```bash
+$ cd /tmp
+$ /path/to/wechat-x86_64.AppImage --appimage-extract
+$ vim squashfs-root/AppRun
+  # 尝试寻找并去除未成功挂载的目录
+$ appimagetool squashfs-root
+  # 你需要自己下载 appimagetool
+  # 最好提前在 GitHub 下好 appimagetool 的 runtime-x86_64，免得每次操作都要重新下载这个文件。
+  # 此时的命令为 appimagetool --runtime-file /path/to/runtime-x86_64
+$ ./wechat-x86_64.AppImage
+  # 尝试新打包的
+```
+
+#### 5.3.4 链接库的问题
+
+可能有些发行版缺少链接库，你可以尝试如下方式找到未安装的库并安装：
+
+```bash
+$ ./wechat-x86_64.AppImage --debug
+$ ldd /opt/wechat-beta/wechat | grep "not found"
+  # 尝试寻找缺少的库并安装（自行搜索安装方法）
 ```
 
 ## 6 声明
